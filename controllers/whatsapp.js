@@ -7,7 +7,6 @@ let conversationState = {}; // Estado de la conversación para mantener contexto
 
 // Función para manejar mensajes de WhatsApp
 async function handleMessage(req, res) {
-  console.log("holis");
   const incomingMessage = req.body.Body;
   const fromNumber = req.body.From;
   console.log("Mensaje recibido:", incomingMessage, "De:", fromNumber);
