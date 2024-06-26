@@ -33,7 +33,7 @@ app.post("/webhook", handleMessage);
 
 // Start server
 async function startServer() {
-  await trainModel(); // Train the model when starting the server
+  //await trainModel(); // Train the model when starting the server
   app.listen(3000, () => {
     console.log("WhatsApp chatbot running on port 3000");
   });
