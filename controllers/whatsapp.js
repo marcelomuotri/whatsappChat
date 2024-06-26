@@ -1,7 +1,6 @@
 // whatsappController.js
 
 import { processMessage } from "../nlp.js";
-import { sendMessage } from "../services/twilioService.js";
 
 let conversationState = {}; // Estado de la conversación para mantener contexto
 
@@ -25,7 +24,7 @@ async function handleMessage(req, res) {
     // Manejar diferentes intenciones
     responseMessage = detectIntent(result.intent);
   }
-  sendMessage(fromNumber, responseMessage);
+  //sendMessage(fromNumber, responseMessage);
 }
 
 const manageIntents = (incomingMessage) => {
