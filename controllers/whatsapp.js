@@ -1,72 +1,49 @@
-// whatsappController.js
+// controllers/whatsapp.js
 
-import { processMessage } from "../nlp.js";
+import axios from "axios";
 
-let conversationState = {}; // Estado de la conversación para mantener contexto
+export async function handleMessage(req, res) {
+  console.log("holiii");
+  const body = req.body;
 
-// Función para manejar mensajes de WhatsApp
-async function handleMessage(req, res) {
-  const incomingMessage = req.body.Body;
-  const fromNumber = req.body.From;
-  console.log("Mensaje recibido:", incomingMessage, "De:", fromNumber);
+  if (body.object === "whatsapp_business_account") {
+    if (
+      body.entry &&
+      body.entry[0].changes &&
+      body.entry[0].changes[0].value.messages &&
+      body.entry[0].changes[0].value.messages[0]
+    ) {
+      const message = body.entry[0].changes[0].value.messages[0];
+      const from = message.from; // El número de teléfono del remitente
+      const msg_body = message.text.body; // El contenido del mensaje
 
-  // Procesar el mensaje para detectar la intención y entidades
-  const result = await processMessage(incomingMessage);
-  console.log("Intención detectada:", result.intent);
-  console.log("Detalles:", result.entities);
+      console.log(`Mensaje recibido de ${from}: ${msg_body}`);
 
-  let responseMessage;
+      // Aquí puedes procesar el mensaje y enviar una respuesta
+      // Por ejemplo, puedes usar axios para enviar una respuesta a través de la API de WhatsApp Business
 
-  // Manejar estados de la conversación
-  if (conversationState.intent) {
-    responseMessage = manageIntents(incomingMessage);
-  } else {
-    // Manejar diferentes intenciones
-    responseMessage = detectIntent(result.intent);
-  }
-  //sendMessage(fromNumber, responseMessage);
-}
+      const responseMessage = {
+        messaging_product: "whatsapp",
+        to: from,
+        text: { body: "Hola, este es un mensaje automático de respuesta." },
+      };
 
-const manageIntents = (incomingMessage) => {
-  let responseMessage;
-  if (conversationState.intent === "bookAppointment") {
-    // Si estamos en el estado de reserva de cita, esperamos una fecha válida
-    const date = new Date(incomingMessage);
+      await axios.post(
+        `https://graph.facebook.com/v12.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+        responseMessage,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+          },
+        }
+      );
 
-    if (isNaN(date.getTime())) {
-      // Si la fecha no es válida, pedimos que intente nuevamente
-      console.log("Formato de fecha inválido. Por favor, inténtelo de nuevo.");
-      responseMessage =
-        "Formato de fecha inválido. Por favor, inténtelo de nuevo.";
+      res.sendStatus(200);
     } else {
-      // Si la fecha es válida, confirmamos la reserva de la cita
-      console.log("Fecha seleccionada:", date);
-      responseMessage = `Ok, agendaré una cita para el ${date.toLocaleDateString(
-        "es-AR"
-      )}.`;
-      // Limpiar el estado de la conversación
-      conversationState = {};
+      res.sendStatus(404);
     }
-    return responseMessage;
+  } else {
+    res.sendStatus(404);
   }
-};
-const detectIntent = (intent) => {
-  let responseMessage;
-  switch (intent) {
-    case "bookAppointment":
-      responseMessage = "¿Para qué fecha le gustaría agendar la cita?";
-      conversationState.intent = "bookAppointment";
-      break;
-    case "cancelAppointment":
-      responseMessage = "Lo siento, no puedo ayudar con la cancelación.";
-      break;
-    case "modifyAppointment":
-      responseMessage = "Lo siento, no puedo ayudar con la modificación.";
-      break;
-    default:
-      responseMessage = "Lo siento, no entendí tu mensaje.";
-  }
-  return responseMessage;
-};
-
-export { handleMessage };
+}

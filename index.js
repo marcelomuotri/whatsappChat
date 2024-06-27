@@ -3,15 +3,15 @@
 import express from "express";
 import bodyParser from "body-parser";
 import { handleMessage } from "./controllers/whatsapp.js";
-import { trainModel } from "./nlp.js";
 import cors from "cors";
 import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors()); // Habilitar CORS
-dotenv.config();
 
 app.get("/webhook", (req, res) => {
   console.log("GET request to /webhook");
